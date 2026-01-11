@@ -1,4 +1,3 @@
-// Journal.java
 package ru.rut.miit.git;
 
 import java.io.IOException;
@@ -20,7 +19,7 @@ public class Journal {
 
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.out.println("Использование: java -jar journal.jar [add|list] ['текст записи']");
+            System.out.println("Использование: java -jar journal.jar [add|list|search] ['текст записи/ключевое слово']");
             return;
         }
 
@@ -37,6 +36,13 @@ public class Journal {
                     break;
                 case "list":
                     listEntries();
+                    break;
+                case "search":
+                    if (args.length < 2) {
+                        System.out.println("Ошибка: для команды 'search' нужно ключевое слово.");
+                        return;
+                    }
+                    searchEntries(args[1]);
                     break;
                 default:
                     System.out.println("Неизвестная команда: " + command);
@@ -61,29 +67,32 @@ public class Journal {
             return Collections.emptyList();
         }
 
-
-        List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8).stream().skip(1).collect(Collectors.toList());
+        List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
         System.out.println("--- Записи дневника ---");
         lines.forEach(System.out::println);
         System.out.println("-----------------------");
-
-        List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
-        System.out.println("--- Результаты поиска ---"); // Изменим заголовок для наглядности
-        for (String line : lines) {
-            // Имитируем простой поиск по содержимому.
-            // Например, ищем записи, содержащие слово "тест".
-            if (line.contains("тест")) {
-                System.out.println(line);
-            }
-        }
-        System.out.println("-------------------------");
- upstream/feature/search-by-date
         return lines;
     }
 
+    public static List<String> searchEntries(String keyword) throws IOException {
+        Path path = Paths.get(JOURNAL_FILE);
+        if (!Files.exists(path)) {
+            System.out.println("Дневник пуст.");
+            return Collections.emptyList();
+        }
+
+        List<String> allLines = Files.readAllLines(path, StandardCharsets.UTF_8);
+        List<String> results = allLines.stream()
+                .filter(line -> line.contains(keyword))
+                .collect(Collectors.toList());
+
+        System.out.println("--- Результаты поиска ---");
+        results.forEach(System.out::println);
+        System.out.println("-------------------------");
+        return results;
+    }
+
     public static void rotateLogs() {
-        // В реальном приложении здесь была бы логика проверки размера файла.
-        // Для нашего задания достаточно симулировать действие.
         System.out.println("[INFO] Log rotation check complete.");
     }
 }
